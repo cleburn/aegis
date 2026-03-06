@@ -20,8 +20,7 @@
 import * as readline from "node:readline";
 import chalk from "chalk";
 import {
-  ZEUS_LOGO,
-  SHIELD_ZOOM_FRAMES,
+  AEGIS_LOGO,
   THINKING_ANIMATIONS,
   THINKING_FRAME_HEIGHT,
 } from "./art.js";
@@ -44,25 +43,16 @@ export class TerminalUI {
   // ── Intro Sequence ─────────────────────────────────────────────────
 
   /**
-   * Play the full intro: Zeus logo → shield zoom-out → clean slate.
-   * Only for first-time inits. Return visits skip this entirely.
+   * Show the Aegis logo. Clean, confident entrance.
    */
   async playIntro(): Promise<void> {
     // Clear terminal for a clean entrance
     process.stdout.write("\x1b[2J\x1b[H");
 
-    // Show Zeus logo
-    const coloredLogo = colorizeLogo(ZEUS_LOGO);
+    // Show the logo with color
+    const coloredLogo = colorizeLogo(AEGIS_LOGO);
     process.stdout.write(coloredLogo);
-    await sleep(2000);
-
-    // Zoom out: shield shrinks across frames
-    for (const frame of SHIELD_ZOOM_FRAMES) {
-      clearScreen();
-      const coloredFrame = colorizeLogo(frame);
-      process.stdout.write(coloredFrame);
-      await sleep(400);
-    }
+    await sleep(1500);
 
     // Clear to clean slate, ready for conversation
     clearScreen();
@@ -247,7 +237,7 @@ export class TerminalUI {
   showFilesCreated(files: string[]): void {
     console.log("");
     for (const file of files) {
-      console.log(`  ${DIM("→")} ${DIM(file)}`);
+      console.log(`  ${DIM("\u2192")} ${DIM(file)}`);
     }
     console.log("");
   }
@@ -290,14 +280,31 @@ function clearScreen(): void {
 }
 
 /**
- * Add color to the Zeus logo. Lightning bolts get gold,
- * the shield gets blue, text gets the aegis blue.
+ * Add color to the Aegis logo. Block letters get the aegis blue,
+ * tagline stays dim.
  */
 function colorizeLogo(text: string): string {
-  return text
-    .replace(/⚡/g, BOLT("⚡"))
-    .replace(/⛊/g, AEGIS("⛊"))
-    .replace(/A  E  G  I  S/g, AEGIS("A  E  G  I  S"));
+  const lines = text.split("\n");
+  return lines
+    .map((line) => {
+      // Tagline line
+      if (line.includes("governance for ai agents")) {
+        return DIM(line);
+      }
+      // Block letter lines (contain box-drawing characters)
+      if (
+        line.includes("\u2588") ||
+        line.includes("\u2554") ||
+        line.includes("\u2557") ||
+        line.includes("\u255A") ||
+        line.includes("\u255D") ||
+        line.includes("\u2550")
+      ) {
+        return AEGIS(line);
+      }
+      return line;
+    })
+    .join("\n");
 }
 
 /**
@@ -305,8 +312,8 @@ function colorizeLogo(text: string): string {
  */
 function colorizeThinking(text: string): string {
   return text
-    .replace(/⚡/g, BOLT("⚡"))
-    .replace(/🤔/g, "🤔")
-    .replace(/👀/g, "👀")
+    .replace(/\u26A1/g, BOLT("\u26A1"))
+    .replace(/\uD83E\uDD14/g, "\uD83E\uDD14")
+    .replace(/\uD83D\uDC40/g, "\uD83D\uDC40")
     .replace(/[~]/g, DIM("~"));
 }

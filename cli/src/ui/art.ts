@@ -17,64 +17,23 @@
 // ── Intro Logo ─────────────────────────────────────────────────────────
 
 /**
- * Zeus holding the Aegis shield. Minimal, iconic, a little playful.
- * ~15 lines tall, centered for 80 columns.
+ * Block letter AEGIS wordmark with tagline.
+ * Clean, bold, unmistakable. ~8 lines tall, fits 80-column terminals.
  */
-export const ZEUS_LOGO: string = `
-                         ⚡
-                        /|
-                       / |
-                  ____/  |
-                 /       |
-                |   ⚡   |
-           _____|        |_____
-          /     |   /\\   |     \\
-         |  .----|  /  \\  |----.  |
-         | |    | / ⛊  \\ |    | |
-         |  '----|/______\\|----'  |
-          \\_____/|        |\\_____/
-                 |   ||   |
-                 |   ||   |
-                 |  /  \\  |
-                 | /    \\ |
-                 |/      \\|
-                 /________\\
+export const AEGIS_LOGO: string = [
+  "",
+  "     \u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557",
+  "    \u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D \u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D",
+  "    \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2551  \u2588\u2588\u2588\u2557\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557",
+  "    \u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u255D  \u2588\u2588\u2551   \u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2550\u2550\u2550\u2550\u2588\u2588\u2551",
+  "    \u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551",
+  "    \u255A\u2550\u255D  \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D",
+  "    \u2500\u2500 governance for ai agents \u2500\u2500",
+  "",
+].join("\n");
 
-              A  E  G  I  S
-`;
-
-/**
- * Shield zoom-out sequence. Each frame is smaller than the last,
- * ending at a single icon that becomes the prompt origin.
- */
-export const SHIELD_ZOOM_FRAMES: string[] = [
-  // Frame 1 — medium shield
-  `
-           ___________
-          /     ⚡     \\
-         |    /    \\    |
-         |   / ⛊    \\   |
-         |  /________\\  |
-          \\___________/
-`,
-  // Frame 2 — small shield
-  `
-            _______
-           /  ⚡    \\
-          |  / ⛊ \\  |
-           \\_______/
-`,
-  // Frame 3 — tiny shield
-  `
-             /⚡\\
-            |⛊ |
-             \\_/
-`,
-  // Frame 4 — icon only
-  `
-              ⛊
-`,
-];
+/** Height of the intro logo in lines (for cursor math) */
+export const AEGIS_LOGO_HEIGHT = AEGIS_LOGO.split("\n").length;
 
 // ── Thinking Animations ────────────────────────────────────────────────
 
@@ -88,14 +47,14 @@ export const ZEUS_LIGHTNING_FRAMES: string[] = [
   `
       \\O    
        |\\   
-      / \\  ⚡
+      / \\  \u26A1
              
              
 `,
   // Frame 2 — throwing
   `
       \\O/   
-       |  ──⚡
+       |  \u2500\u2500\u26A1
       / \\     
               
               
@@ -103,7 +62,7 @@ export const ZEUS_LIGHTNING_FRAMES: string[] = [
   // Frame 3 — bolt in flight
   `
       \\O    
-       |\\        ⚡
+       |\\        \u26A1
       / \\          
                    
                    
@@ -111,7 +70,7 @@ export const ZEUS_LIGHTNING_FRAMES: string[] = [
   // Frame 4 — bolt far out
   `
       \\O    
-       |\\             ⚡
+       |\\             \u26A1
       / \\               
                         
                         
@@ -119,14 +78,14 @@ export const ZEUS_LIGHTNING_FRAMES: string[] = [
   // Frame 5 — bolt returning
   `
       \\O    
-       |\\        ⚡
+       |\\        \u26A1
       / \\          
                    
                    
 `,
   // Frame 6 — caught
   `
-     ⚡O    
+     \u26A1O    
        |\\   
       / \\  
             
@@ -144,28 +103,28 @@ export const EINSTEIN_WALK_FRAMES: string[] = [
   `
   ~o/        
    /|        
-   / \\    🤔 
+   / \\    \uD83E\uDD14 
              
 `,
   // Frame 2
   `
      ~o/     
       /|     
-      / \\  🤔
+      / \\  \uD83E\uDD14
              
 `,
   // Frame 3
   `
         ~o/  
          /|  
-        / \\ 🤔
+        / \\ \uD83E\uDD14
              
 `,
   // Frame 4 — glances at user
   `
         \\o~  
          |\\  
-        / \\ 👀
+        / \\ \uD83D\uDC40
              
 `,
   // Frame 5
@@ -185,9 +144,6 @@ export const EINSTEIN_WALK_FRAMES: string[] = [
 ];
 
 // ── Utilities ──────────────────────────────────────────────────────────
-
-/** Height of the intro logo in lines (for cursor math) */
-export const ZEUS_LOGO_HEIGHT = ZEUS_LOGO.split("\n").length;
 
 /** Consistent frame height for thinking animations (for cursor math) */
 export const THINKING_FRAME_HEIGHT = 6;

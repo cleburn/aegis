@@ -1,8 +1,14 @@
-# Aegis
+<p align="center">
+  <img src="aegis-banner.svg" alt="Aegis — Structured governance for AI agents" width="900" />
+</p>
 
-**`.editorconfig` for AI agents — but with the depth of an actual governance framework.**
+<p align="center">
+  <strong><code>.editorconfig</code> for AI agents — but with the depth of an actual governance framework.</strong>
+</p>
 
-Run `aegis init`, have a conversation, and give every AI agent that touches your codebase a structured operating contract: what it can touch, what's off-limits, what conventions to follow, how much autonomy it has, and who else is on the team. Schema-validated, machine-parseable, agent-agnostic.
+<p align="center">
+  Run <code>aegis init</code>, have a conversation, and give every AI agent that touches your codebase a structured operating contract: what it can touch, what's off-limits, what conventions to follow, how much autonomy it has, and who else is on the team. Schema-validated, machine-parseable, agent-agnostic.
+</p>
 
 ---
 
