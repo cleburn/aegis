@@ -1,19 +1,38 @@
 {
   "name": "aegis-cli",
   "version": "0.1.0",
-  "description": "The best colleague you've ever had — for every AI agent on your team.",
+  "description": ".editorconfig for AI agents. Structured governance for any AI agent working in your codebase.",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "bin": {
-    "aegis": "./dist/bin/aegis.js"
+    "aegis": "dist/bin/aegis.js"
   },
+  "files": [
+    "dist/"
+  ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/bin/aegis.ts",
-    "start": "node dist/bin/aegis.js",
+    "build": "tsc && cp src/schemas/*.json dist/src/schemas/",
+    "prepublishOnly": "npm run build",
+    "dev": "tsx bin/aegis.ts",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": ["ai", "agents", "governance", "cli", "developer-tools"],
+  "keywords": [
+    "ai",
+    "agents",
+    "governance",
+    "cli",
+    "developer-tools",
+    "claude",
+    "codex",
+    "copilot",
+    "agentpolicy"
+  ],
+  "author": "Cleburn Walker",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cleburn/aegis"
+  },
+  "homepage": "https://github.com/cleburn/aegis",
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
