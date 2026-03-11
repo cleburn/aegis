@@ -4,7 +4,7 @@
  * The main event. Scans the repo, starts a discovery conversation
  * with the human, and produces the .agentpolicy/ directory.
  *
- * First-time: Zeus logo → shield zoom → conversation → files appear.
+ * First-time: Logo wordmark → conversation → files appear.
  * Return visit: Short opener → conversation → files updated.
  *
  * The scan happens quietly before the first message. The policy

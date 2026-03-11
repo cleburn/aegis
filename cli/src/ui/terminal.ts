@@ -21,17 +21,33 @@ import * as readline from "node:readline";
 import chalk from "chalk";
 import {
   AEGIS_LOGO,
+  SHIELD_PULSE_FRAMES,
   THINKING_ANIMATIONS,
   THINKING_FRAME_HEIGHT,
 } from "./art.js";
 
-// Subtle color palette — not branded, just warm
-const AEGIS = chalk.hex("#5B8DEF");
-const YOU = chalk.hex("#A8D8A8");
+// ── Color Palette ──────────────────────────────────────────────────────
+// Not branded, just warm. Two distinct voices in the conversation.
+
+const AEGIS_COLOR = chalk.hex("#5B8DEF");
+const YOU_COLOR = chalk.hex("#A8D8A8");
 const DIM = chalk.dim;
 const ACCENT = chalk.hex("#5B8DEF");
 const CHECK = chalk.hex("#A8D8A8");
 const PROGRESS = chalk.hex("#FFD700");
+
+// ── Conversation Chrome ────────────────────────────────────────────────
+// Visual anchors that make speaker turns scannable at a glance.
+// The bar character (▎) runs down the left edge of each turn,
+// giving the conversation a spatial rhythm you can see when scrolling.
+
+const AEGIS_BAR = AEGIS_COLOR("▎");
+const YOU_BAR = YOU_COLOR("▎");
+const AEGIS_LABEL = AEGIS_COLOR("aegis");
+const YOU_LABEL = YOU_COLOR("you");
+
+/** Minimum terminal width needed for the wide shield assembly animation */
+const MIN_WIDTH_FOR_ASSEMBLY = 54;
 
 export class TerminalUI {
   private rl: readline.Interface | null = null;
@@ -41,6 +57,7 @@ export class TerminalUI {
   private isAnimating = false;
   private currentFrameIndex = 0;
   private currentAnimation: string[] | null = null;
+  private linesDrawn = 0; // actual visual lines on screen for current animation
 
   // ── Intro Sequence ─────────────────────────────────────────────────
 
@@ -73,16 +90,27 @@ export class TerminalUI {
 
   /**
    * Show an Aegis message — complete, not streamed.
+   * Blue bar + label, full-brightness text, word-wrapped to terminal width.
    */
   showAegisMessage(message: string): void {
-    console.log(`  ${AEGIS("aegis")}  ${message}\n`);
+    const prefix = `  ${AEGIS_BAR} ${AEGIS_LABEL}  `;
+    const continuation = `  ${AEGIS_BAR}         `;
+    const wrapped = wrapText(message, getWrapWidth());
+    const lines = wrapped.split("\n");
+
+    console.log(prefix + lines[0]);
+    for (let i = 1; i < lines.length; i++) {
+      console.log(continuation + lines[i]);
+    }
+    console.log(`  ${AEGIS_BAR}`);
+    console.log("");
   }
 
   /**
-   * Begin streaming — show the name tag and start writing.
+   * Begin streaming — show the bar and name tag, start writing.
    */
   startAegisResponse(): void {
-    process.stdout.write(`  ${AEGIS("aegis")}  `);
+    process.stdout.write(`  ${AEGIS_BAR} ${AEGIS_LABEL}  `);
     this.isStreaming = true;
   }
 
@@ -96,17 +124,20 @@ export class TerminalUI {
   }
 
   /**
-   * End streaming. Clean newline.
+   * End streaming. Close out the bar and add breathing room.
    */
   endAegisResponse(): void {
     if (this.isStreaming) {
-      console.log("\n");
+      console.log("");
+      console.log(`  ${AEGIS_BAR}`);
+      console.log("");
       this.isStreaming = false;
     }
   }
 
   /**
    * Get input from the human.
+   * Green bar + label, dimmed input text for visual weight hierarchy.
    */
   async getUserInput(): Promise<string> {
     return new Promise((resolve) => {
@@ -115,7 +146,7 @@ export class TerminalUI {
         output: process.stdout,
       });
 
-      this.rl.question(`  ${YOU("you")}    `, (answer) => {
+      this.rl.question(`  ${YOU_BAR} ${YOU_LABEL}    `, (answer) => {
         this.rl?.close();
         this.rl = null;
         console.log("");
@@ -129,7 +160,7 @@ export class TerminalUI {
   /**
    * Start the thinking sequence. Sets a 2-second timer.
    * If stopThinking() is called before the timer fires, nothing appears.
-   * If the timer fires, a random animation starts looping.
+   * If the timer fires, a terminal-width-safe animation starts looping.
    */
   startThinking(): void {
     this.thinkingTimer = setTimeout(() => {
@@ -157,13 +188,31 @@ export class TerminalUI {
   }
 
   /**
-   * Begin a random thinking animation loop.
+   * Begin a thinking animation loop.
+   *
+   * Checks terminal width to pick a safe animation:
+   * - Narrow terminals (< 54 cols) always get the compact shield pulse
+   * - Wide terminals get a random pick from all animations
+   *
+   * Each frame is clamped to terminal width before drawing so lines
+   * never wrap and the cursor math stays correct.
    */
   private beginAnimation(): void {
-    const animIndex = Math.floor(Math.random() * THINKING_ANIMATIONS.length);
-    this.currentAnimation = THINKING_ANIMATIONS[animIndex];
+    const cols = getTerminalWidth();
+
+    let animations: string[][];
+    if (cols < MIN_WIDTH_FOR_ASSEMBLY) {
+      // Narrow terminal — only use the compact pulse animation
+      animations = [SHIELD_PULSE_FRAMES];
+    } else {
+      animations = THINKING_ANIMATIONS;
+    }
+
+    const animIndex = Math.floor(Math.random() * animations.length);
+    this.currentAnimation = animations[animIndex];
     this.currentFrameIndex = 0;
     this.isAnimating = true;
+    this.linesDrawn = 0;
 
     // Draw first frame
     this.drawFrame();
@@ -178,22 +227,35 @@ export class TerminalUI {
 
   /**
    * Draw the current animation frame.
+   * Clamps each line to terminal width to prevent wrapping.
+   * Tracks actual lines drawn for safe cursor math on redraw.
    */
   private drawFrame(): void {
     if (!this.currentAnimation) return;
     const frame = this.currentAnimation[this.currentFrameIndex];
-    const colored = colorizeThinking(frame);
+    const cols = getTerminalWidth();
+
+    // Clamp each line to terminal width — prevents wrapping that
+    // would throw off cursor math on redraw
+    const clamped = frame
+      .split("\n")
+      .map((line) => clampLine(line, cols))
+      .join("\n");
+
+    const colored = colorizeThinking(clamped);
     process.stdout.write(colored);
+    this.linesDrawn = THINKING_FRAME_HEIGHT;
   }
 
   /**
-   * Redraw: move cursor up, clear lines, draw new frame.
+   * Redraw: move cursor up by the number of lines we actually drew,
+   * clear them, draw the new frame.
    */
   private redrawFrame(): void {
     if (!this.currentAnimation) return;
 
-    // Move cursor up by frame height and clear each line
-    for (let i = 0; i < THINKING_FRAME_HEIGHT; i++) {
+    // Move cursor up and clear each line we drew
+    for (let i = 0; i < this.linesDrawn; i++) {
       process.stdout.write("\x1b[A"); // cursor up
       process.stdout.write("\x1b[2K"); // clear line
     }
@@ -203,6 +265,7 @@ export class TerminalUI {
 
   /**
    * Clear the animation completely and reset state.
+   * Uses tracked line count + a safety sweep to catch any ghost lines.
    */
   private clearAnimation(): void {
     if (this.thinkingInterval) {
@@ -210,17 +273,21 @@ export class TerminalUI {
       this.thinkingInterval = null;
     }
 
-    // Clear the animation lines
-    if (this.isAnimating) {
-      for (let i = 0; i < THINKING_FRAME_HEIGHT; i++) {
+    // Clear the animation lines we actually drew
+    if (this.isAnimating && this.linesDrawn > 0) {
+      for (let i = 0; i < this.linesDrawn; i++) {
         process.stdout.write("\x1b[A"); // cursor up
         process.stdout.write("\x1b[2K"); // clear line
       }
+      // Safety sweep — clear from cursor to end of screen to catch
+      // any ghost lines from wrapped text or frame size mismatches
+      process.stdout.write("\x1b[J");
     }
 
     this.isAnimating = false;
     this.currentAnimation = null;
     this.currentFrameIndex = 0;
+    this.linesDrawn = 0;
   }
 
   // ── System Messages ────────────────────────────────────────────────
@@ -282,6 +349,68 @@ function clearScreen(): void {
 }
 
 /**
+ * Get terminal width, with a safe fallback.
+ */
+function getTerminalWidth(): number {
+  return process.stdout.columns || 80;
+}
+
+/**
+ * Get the usable width for word-wrapping message text.
+ * Accounts for the left-side bar + label + padding (~12 chars).
+ */
+function getWrapWidth(): number {
+  return Math.max(40, getTerminalWidth() - 14);
+}
+
+/**
+ * Word-wrap text to a given width. Breaks on spaces to avoid
+ * splitting words mid-line. Preserves existing newlines.
+ */
+function wrapText(text: string, width: number): string {
+  return text
+    .split("\n")
+    .map((paragraph) => {
+      if (paragraph.length <= width) return paragraph;
+
+      const words = paragraph.split(" ");
+      const lines: string[] = [];
+      let current = "";
+
+      for (const word of words) {
+        if (current.length === 0) {
+          current = word;
+        } else if (current.length + 1 + word.length <= width) {
+          current += " " + word;
+        } else {
+          lines.push(current);
+          current = word;
+        }
+      }
+      if (current.length > 0) lines.push(current);
+
+      return lines.join("\n");
+    })
+    .join("\n");
+}
+
+/**
+ * Clamp a line to a maximum character width.
+ * Strips ANSI codes for measurement, then truncates the raw string
+ * if the visible length exceeds the limit.
+ */
+function clampLine(line: string, maxWidth: number): string {
+  // Strip ANSI escape codes for accurate length measurement
+  const visible = line.replace(/\x1b\[[0-9;]*m/g, "");
+  if (visible.length <= maxWidth) return line;
+
+  // Truncate the raw string — this is imperfect with ANSI codes
+  // but safe enough since we're only clamping animation frames
+  // (which are colorized after clamping, not before)
+  return line.slice(0, maxWidth);
+}
+
+/**
  * Add color to the Aegis logo. Block letters get the aegis blue,
  * tagline stays dim.
  */
@@ -302,7 +431,7 @@ function colorizeLogo(text: string): string {
         line.includes("\u255D") ||
         line.includes("\u2550")
       ) {
-        return AEGIS(line);
+        return AEGIS_COLOR(line);
       }
       return line;
     })

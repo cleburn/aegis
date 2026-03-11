@@ -3,8 +3,8 @@
  *
  * The beating heart of `aegis init`. Just a conversation loop.
  *
- * When Aegis needs to think, there's a playful animation — Zeus
- * throwing lightning, Einstein pacing. When policy gets extracted,
+ * When Aegis needs to think, the shield animation keeps the human
+ * company — diamonds filling in, the .agentpolicy/ tree assembling. When policy gets extracted,
  * the same animations keep the human company. The experience is:
  * they talked to someone with real presence, and then files appeared.
  */
