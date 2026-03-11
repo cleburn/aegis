@@ -1,13 +1,11 @@
-<p align="center">
-  <img src="aegis-banner.svg" alt="Aegis — Structured governance for AI agents" width="900" />
-</p>
+# Aegis — Governance Specification for AI Agents
 
 <p align="center">
   <strong><code>.editorconfig</code> for AI agents — but with the depth of an actual governance framework.</strong>
 </p>
 
 <p align="center">
-  Run <code>aegis init</code>, have a conversation, and give every AI agent that touches your codebase a structured operating contract: what it can touch, what's off-limits, what conventions to follow, how much autonomy it has, and who else is on the team. Schema-validated, machine-parseable, agent-agnostic.
+  A structured operating contract for every AI agent that touches your codebase: what it can touch, what's off-limits, what conventions to follow, how much autonomy it has, and who else is on the team. Schema-validated, machine-parseable, agent-agnostic.
 </p>
 
 ---
@@ -20,9 +18,9 @@ When multiple agents work the same codebase? No shared state. No role boundaries
 
 The tools exist. The governance doesn't.
 
-## The Solution
+## The Spec
 
-Aegis produces `.agentpolicy/` — a directory of schema-validated JSON that any agent, tool, or orchestration layer can parse deterministically. Not prose. Not suggestions. A contract.
+Aegis defines `.agentpolicy/` — a directory of schema-validated JSON that any agent, tool, or orchestration layer can parse deterministically. Not prose. Not suggestions. A contract.
 
 ```
 .agentpolicy/
@@ -37,60 +35,23 @@ Aegis produces `.agentpolicy/` — a directory of schema-validated JSON that any
     └── ledger.json         # Living task state: in progress, done, failed, blocked
 ```
 
-You don't write these files. You have a conversation with Aegis — it scans your repo, asks the right questions, and compiles your answers into the policy. When something needs to change, you talk to Aegis again. You never hand-edit JSON.
-
-## Quick Start
-
-```bash
-# Install
-npm install -g aegis-cli
-
-# Start the discovery conversation
-aegis init
-
-# Have Aegis explain the current policy in plain language
-aegis explain
-
-# Validate policy files against the schema
-aegis validate
-
-# See what Aegis remembers about you
-aegis memory
-```
-
-## How `aegis init` Works
-
-Run it in your project root. Aegis scans your repo — not just the file tree, but the actual contents of your config files, documentation, CI workflows, and project structure. By the time the conversation starts, Aegis already knows your stack, your architecture, your build pipeline, and your patterns.
-
-If Aegis detects files that look sensitive — environment variables, credentials, database files — it skips them and tells you what it chose not to read. You decide whether it needs access. Nothing gets opened without your awareness.
-
-From there, the conversation is focused and specific. Aegis doesn't ask what language you're using — it already knows. Instead, it asks about the things it can't infer from code alone:
-
-- Your guiding principles and what's non-negotiable
-- How much autonomy agents should have across different domains
-- Which files are sacred and which are fair game
-- How you want agents to coordinate when multiple roles are in play
-- What should happen when an agent hits ambiguity or a gap in the rules
-
-The conversation moves fast. Aegis confirms what it already knows, fills in what it doesn't, and when it has the full picture, your `.agentpolicy/` directory appears — complete, schema-validated, and ready for every agent that works here next.
-
-## The `.agentpolicy/` Format
-
 ### Constitution
 
-The first file any agent reads. What is this project? What's the tech stack? What are the non-negotiable principles? If an agent reads nothing else, this prevents catastrophic mistakes.
+The first file any agent reads. What is this project? What's the tech stack? What are the non-negotiable principles? What are the build commands? If an agent reads nothing else, this prevents catastrophic mistakes.
 
 ### Governance
 
 The employee handbook. Autonomy levels per domain (can the agent add dependencies freely, or must it ask?), file permissions (writable, read-only, forbidden), coding conventions as machine-queryable rules, quality gates that define "done," and escalation protocols for when policy doesn't cover a situation.
 
+Autonomy domains are not limited to a fixed list — the schema accepts any domain string. A healthcare project might define `patient_data_access` and `pii_handling`. A fintech project might define `financial_transactions` and `regulatory_reporting`. The project's needs dictate the domains, not a predetermined list.
+
 ### Roles
 
-Individual job descriptions. Each role defines a scope (what paths it owns), autonomy overrides, convention overrides, and collaboration protocols — who it depends on, who depends on it, how it signals completion, and how it coordinates access to shared resources.
+Individual job descriptions. Each role defines a scope (what paths it owns), autonomy overrides, convention overrides, and collaboration protocols — who it depends on, who depends on it, how it signals completion, and how it coordinates access to shared resources. Single-agent workflows need only a `default.json`. Multi-agent workflows define specialist roles with clear boundaries.
 
 ### Ledger
 
-The shared whiteboard — and the only file agents write to, not just read. Every task is recorded here with timestamps, change logs, and failure records that prevent the next agent from retrying the same broken approach. A built-in write protocol with sequence checking and lock files ensures agents never corrupt each other's entries, even in parallel.
+The shared whiteboard — and the only file agents write to, not just read. Every task is recorded with timestamps, change logs, and failure records that prevent the next agent from retrying the same broken approach. A built-in write protocol with sequence checking and lock files ensures agents never corrupt each other's entries, even in parallel.
 
 ## The Autonomy Framework
 
@@ -102,32 +63,42 @@ Every operational domain gets an autonomy level:
 | **Advisory** | Agent surfaces recommendations and waits for approval. |
 | **Delegated** | Agent acts on its own judgment and reports afterward. |
 
-You set this per domain. Code modification might be `delegated` while infrastructure changes are `conservative`. A senior role might get more autonomy than a narrow specialist. You always decide how much rope to give.
+You set this per domain. Code modification might be `delegated` while infrastructure changes are `conservative`. A senior role might get more autonomy than a narrow specialist. The human always decides how much rope to give.
+
+## Schemas
+
+The JSON schemas define the `.agentpolicy/` format:
+
+| Schema | Purpose |
+|--------|---------|
+| [`constitution.schema.json`](schemas/constitution.schema.json) | Project identity, stack, principles, build commands |
+| [`governance.schema.json`](schemas/governance.schema.json) | Autonomy, permissions, conventions, quality gates, escalation |
+| [`role.schema.json`](schemas/role.schema.json) | Scoped role definitions with collaboration protocols |
+| [`ledger.schema.json`](schemas/ledger.schema.json) | Shared operational state and task tracking |
+
+All policy files include a `$schema` reference and a `version` field. Tools can validate policy files against these schemas to ensure structural correctness.
+
+## Example
+
+The [`examples/`](./examples) directory contains a complete `.agentpolicy/` directory for a fictional project (Relay CRM) demonstrating all four file types with realistic content.
 
 ## Agent-Agnostic
 
 Aegis doesn't compete with Claude Code, Cursor, Codex, Gemini, or any other agent. It serves all of them. The `.agentpolicy/` format is an open spec — any tool can read it, and every tool benefits from a standardized way to understand its operating rules in a given repo.
 
-## Schema Spec
+## Adopting the Spec
 
-The `.agentpolicy/` format is defined by four JSON Schemas:
+To adopt Aegis governance in your project, tool, or framework:
 
-| Schema | Purpose |
-|--------|---------|
-| [`constitution.schema.json`](schema/constitution.schema.json) | Project identity, stack, principles, build commands |
-| [`governance.schema.json`](schema/governance.schema.json) | Autonomy, permissions, conventions, quality gates, escalation |
-| [`role.schema.json`](schema/role.schema.json) | Scoped role definitions with collaboration protocols |
-| [`ledger.schema.json`](schema/ledger.schema.json) | Shared operational state and task tracking |
+1. Create an `.agentpolicy/` directory in the project root
+2. Add JSON files conforming to the schemas above
+3. Point your agents at the directory as their source of truth
 
-See the [`examples/`](examples/) directory for a complete `.agentpolicy/` configuration built around a fictional B2B CRM project.
+You can generate the files by hand, with the [Aegis CLI](https://github.com/cleburn/aegis-cli), or with any tool that produces valid JSON against the schemas. The governance layer is the standard — the tooling is interchangeable.
 
-## What's Next
+## Reference Implementation
 
-Today, Aegis writes the operating rules. Your agents read them and operate better immediately — no integration required from any tool vendor.
-
-What's coming: Aegis as a resident process that actively manages the team. Assigning tasks, routing work to the right specialist role, maintaining the ledger in real time, coordinating handoffs between agents, and enforcing policy boundaries as agents work. The COO doesn't just write the handbook — the COO runs the operation.
-
----
+The [Aegis CLI](https://github.com/cleburn/aegis-cli) (`aegis-cli` on npm) is the reference implementation. It scans your codebase, conducts a discovery conversation, and generates a complete `.agentpolicy/` directory. It's one way to produce the files — not the only way.
 
 ## Philosophy
 
@@ -139,18 +110,20 @@ Aegis is the bridge between your vision and the agents who bring it to life.
 
 ## Design Principles
 
-Aegis is the operational steward of human-AI collaboration — not a task-doer, but the layer that makes task-doing coherent, scoped, and aligned.
+**Machine-readable over human-readable.** The policy files are JSON with enforced schemas, not markdown with suggestions. Agents parse structure, not vibes.
 
-**With the human:** Partner and mentor. Experienced, relaxed confidence — the energy of someone who's done this a thousand times and still loves it. Sharp questions that feel like good conversation, not interrogation. Proactively surfaces things you haven't considered, framed as care not criticism. Makes policy setup feel enjoyable, even exciting — never bureaucratic.
+**Deterministic over aspirational.** Autonomy levels, permissions, and escalation rules are concrete and enforceable. "Be careful with infrastructure" becomes `{ "domain": "infrastructure_changes", "level": "advisory" }`.
 
-**With agents:** The clearest, most complete, most deterministically parseable context possible. Information structured the way agents actually consume it — no ambiguity, no interpretation required. Scopes and boundaries that let agents operate with confidence rather than caution.
+**Scoped over global.** Different agents (or the same agent in different contexts) can have different permissions, conventions, and autonomy levels. A frontend agent doesn't need write access to database migrations.
 
-**With the ecosystem:** Tool-agnostic. Format-first — the `.agentpolicy/` schema is the product, the CLI is the interface. The spec should be adoptable even without the CLI.
+**Auditable over invisible.** The ledger creates a traceable record of what agents did and why. Governance without audit is just hope.
 
 ## Contributing
 
-Aegis is MIT licensed. The `.agentpolicy/` format is an open spec and contributions to the schema, CLI, or documentation are welcome. See the schema files for the full specification.
+Contributions to the spec are welcome. Please open an issue for discussion before submitting schema changes — the spec is versioned and changes affect every tool that implements it.
 
 ## License
 
-MIT
+Apache License 2.0 — see [LICENSE](./LICENSE) and [NOTICE](./NOTICE).
+
+Created by [Cleburn Walker](https://github.com/cleburn).
