@@ -70,6 +70,33 @@
               }
             }
           }
+        },
+        "required_artifacts": {
+          "type": "array",
+          "description": "Files that must exist in the repository. Agents should create these if they are missing. These are project-level deliverables — documentation, licensing, contribution guides — that define the project's public identity and operational standards.",
+          "items": {
+            "type": "object",
+            "required": ["path", "purpose"],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Relative path from project root.",
+                "examples": ["README.md", "LICENSE", "CONTRIBUTING.md"]
+              },
+              "purpose": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "What this file is for and what it should contain, in one sentence."
+              },
+              "source": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "Where the content should be derived from, if applicable.",
+                "examples": ["Derived from charter.md and constitution.json", "Standard MIT license text"]
+              }
+            }
+          }
         }
       }
     },
