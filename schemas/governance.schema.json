@@ -2,10 +2,9 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://aegis.dev/schema/governance.schema.json",
   "title": "Aegis Governance",
-  "description": "The global operating rules that apply to every agent in this workspace, regardless of role. This is the employee handbook — the policies everyone must follow.",
+  "description": "The global operating rules that apply to every agent in this workspace, regardless of role. This is the employee handbook — the policies everyone must follow. Required fields define the universal skeleton. Additional fields are permitted for domain-specific governance (cross-domain rules, data policies, sensitivity handling).",
   "type": "object",
   "required": ["version", "autonomy", "permissions", "quality_gate"],
-  "additionalProperties": false,
   "definitions": {
     "autonomy_level": {
       "type": "string",
@@ -32,7 +31,6 @@
       "type": "object",
       "description": "The autonomy framework. For each operational domain, how much independent authority do agents have? This is the CEO telling the COO which decisions require a phone call and which can be handled independently.",
       "required": ["default_level"],
-      "additionalProperties": false,
       "properties": {
         "default_level": {
           "$ref": "#/definitions/autonomy_level",
@@ -40,8 +38,10 @@
         },
         "domains": {
           "type": "object",
-          "description": "Override autonomy levels for specific operational domains.",
-          "additionalProperties": false,
+          "description": "Override autonomy levels for specific operational domains. Standard domains (code_modification, dependency_management, etc.) are predefined but the schema accepts any domain string — the project's needs dictate the domains, not a predetermined list.",
+          "additionalProperties": {
+            "$ref": "#/definitions/autonomy_level"
+          },
           "properties": {
             "code_modification": {
               "$ref": "#/definitions/autonomy_level",
@@ -85,17 +85,16 @@
             }
           }
         }
-      }
+      },
+      "additionalProperties": true
     },
     "permissions": {
       "type": "object",
       "description": "Explicit access control. What can agents touch, what is read-only, and what is completely off-limits?",
       "required": ["boundaries"],
-      "additionalProperties": false,
       "properties": {
         "boundaries": {
           "type": "object",
-          "additionalProperties": false,
           "properties": {
             "writable": {
               "type": "array",
@@ -115,7 +114,8 @@
               "description": "Glob patterns for paths agents must never read or modify. Treat as if these paths do not exist.",
               "examples": [[".env*", "secrets/**", "infrastructure/production/**"]]
             }
-          }
+          },
+          "additionalProperties": true
         },
         "sensitive_patterns": {
           "type": "array",
@@ -123,7 +123,6 @@
           "items": {
             "type": "object",
             "required": ["pattern", "reason"],
-            "additionalProperties": false,
             "properties": {
               "pattern": {
                 "type": "string",
@@ -135,21 +134,21 @@
                 "maxLength": 100,
                 "description": "Why this is sensitive."
               }
-            }
+            },
+            "additionalProperties": true
           }
         }
-      }
+      },
+      "additionalProperties": true
     },
     "quality_gate": {
       "type": "object",
-      "description": "The minimum quality bar that must be met before any agent considers a task complete. This is the definition of 'done.'",
+      "description": "The minimum quality bar that must be met before any agent considers a task complete. This is the definition of 'done.' The pre_commit object defines the universal baseline. Additional fields and richer gate definitions are permitted for domain-specific quality requirements.",
       "required": ["pre_commit"],
-      "additionalProperties": false,
       "properties": {
         "pre_commit": {
           "type": "object",
           "description": "Checks that must pass before an agent commits or submits work.",
-          "additionalProperties": false,
           "properties": {
             "must_pass_tests": {
               "type": "boolean",
@@ -188,17 +187,19 @@
               "items": {
                 "type": "object",
                 "required": ["name", "command"],
-                "additionalProperties": false,
                 "properties": {
                   "name": { "type": "string" },
                   "command": { "type": "string" },
                   "description": { "type": "string", "maxLength": 100 }
-                }
+                },
+                "additionalProperties": true
               }
             }
-          }
+          },
+          "additionalProperties": true
         }
-      }
+      },
+      "additionalProperties": true
     },
     "conventions": {
       "type": "array",
@@ -206,7 +207,6 @@
       "items": {
         "type": "object",
         "required": ["id", "scope", "rule", "enforcement"],
-        "additionalProperties": false,
         "properties": {
           "id": {
             "type": "string",
@@ -249,13 +249,13 @@
             "maxLength": 200,
             "description": "Brief explanation of why this convention exists. Helps agents make judgment calls in edge cases."
           }
-        }
+        },
+        "additionalProperties": true
       }
     },
     "escalation": {
       "type": "object",
-      "description": "What should agents do when they encounter situations not covered by policy?",
-      "additionalProperties": false,
+      "description": "What should agents do when they encounter situations not covered by policy? The three baseline behaviors are required. Additional fields (triggers, target, behavior descriptions) are permitted for domain-specific escalation protocols.",
       "properties": {
         "on_ambiguity": {
           "type": "string",
@@ -275,12 +275,12 @@
           "default": "stay_in_lane",
           "description": "When a task requires changes outside the agent's assigned scope: stop_and_ask: Request permission. flag_and_suggest: Note what needs to change in the other scope but don't touch it. stay_in_lane: Only work within assigned scope, silently skip out-of-scope work."
         }
-      }
+      },
+      "additionalProperties": true
     },
     "override_protocol": {
       "type": "object",
       "description": "What happens when a human instructs an agent to take an action that violates a governance policy. Agents cannot refuse a direct human instruction, but they can — and must — ensure the override is informed, documented, and auditable. This is the governance equivalent of a signed waiver: the human has the authority to override, but the override goes on record.",
-      "additionalProperties": false,
       "properties": {
         "behavior": {
           "type": "string",
@@ -296,7 +296,6 @@
         "log_entry_schema": {
           "type": "object",
           "description": "The structure of each override log entry. Defines what gets recorded when a policy is overridden.",
-          "additionalProperties": false,
           "properties": {
             "timestamp": {
               "type": "string",
@@ -332,7 +331,8 @@
               "maxLength": 500,
               "description": "Optional rationale provided by the human for why the override is necessary."
             }
-          }
+          },
+          "additionalProperties": true
         },
         "immutable_policies": {
           "type": "array",
@@ -340,7 +340,9 @@
           "description": "Policy IDs that cannot be overridden even with human confirmation. These require the human to modify the governance files directly through Aegis rather than bypassing them in conversation. For projects with runtime enforcement, these are hard blocks. Without runtime enforcement, agents should refuse and explain that the policy must be changed through 'aegis init' rather than overridden in conversation.",
           "examples": [["principle:compliance-supremacy", "principle:audit-trail-completeness"]]
         }
-      }
+      },
+      "additionalProperties": true
     }
-  }
+  },
+  "additionalProperties": true
 }

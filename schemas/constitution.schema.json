@@ -2,10 +2,9 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://aegis.dev/schema/constitution.schema.json",
   "title": "Aegis Constitution",
-  "description": "The foundational identity and context of a project. This is the first file any agent reads upon entering the workspace. It answers: What is this place, and what matters here?",
+  "description": "The foundational identity and context of a project. This is the first file any agent reads upon entering the workspace. It answers: What is this place, and what matters here? The required fields define the universal skeleton every tool can rely on. Additional fields are permitted — the CLI and LLM may surface domain-specific context (sensitivity tiers, domain maps, cross-domain rules) that enriches governance beyond the baseline.",
   "type": "object",
   "required": ["version", "project", "tech_stack", "principles"],
-  "additionalProperties": false,
   "properties": {
     "$schema": {
       "type": "string",
@@ -19,9 +18,8 @@
     },
     "project": {
       "type": "object",
-      "description": "Core identity of the project.",
+      "description": "Core identity of the project. Required fields form the universal skeleton. Additional fields (e.g. domains, sensitivity_tiers, cross_domain_rules) are permitted for domain-specific governance.",
       "required": ["name", "purpose", "architecture"],
-      "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string",
@@ -45,7 +43,6 @@
           "items": {
             "type": "object",
             "required": ["path", "purpose"],
-            "additionalProperties": false,
             "properties": {
               "path": {
                 "type": "string",
@@ -77,7 +74,6 @@
           "items": {
             "type": "object",
             "required": ["path", "purpose"],
-            "additionalProperties": false,
             "properties": {
               "path": {
                 "type": "string",
@@ -98,7 +94,8 @@
             }
           }
         }
-      }
+      },
+      "additionalProperties": true
     },
     "tech_stack": {
       "type": "object",
@@ -162,7 +159,6 @@
       "items": {
         "type": "object",
         "required": ["name", "statement"],
-        "additionalProperties": false,
         "properties": {
           "name": {
             "type": "string",
@@ -171,9 +167,9 @@
           },
           "statement": {
             "type": "string",
-            "maxLength": 300,
+            "maxLength": 500,
             "description": "The principle expressed as a clear directive.",
-            "examples": ["Reliability is more important than speed of delivery. Never ship something that is not thoroughly tested.", "Prefer the simplest solution that meets the requirement. Avoid premature abstraction."]
+            "examples": ["Reliability is more important than speed of delivery. Never ship something that is not thoroughly tested."]
           },
           "priority": {
             "type": "integer",
@@ -181,7 +177,8 @@
             "maximum": 10,
             "description": "Relative priority. 1 is highest. When principles conflict, lower number wins."
           }
-        }
+        },
+        "additionalProperties": true
       }
     },
     "build_commands": {
@@ -211,5 +208,6 @@
         }
       }
     }
-  }
+  },
+  "additionalProperties": true
 }

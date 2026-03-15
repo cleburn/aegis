@@ -2,10 +2,9 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://aegis.dev/schema/role.schema.json",
   "title": "Aegis Role",
-  "description": "A scoped role definition for an agent operating in this workspace. Think of this as a job description: it tells an agent exactly what it is responsible for, what it can access, and how it should operate. Every agent entering the workspace is assigned a role — either the default role or a named specialist role.",
+  "description": "A scoped role definition for an agent operating in this workspace. Think of this as a job description: it tells an agent exactly what it is responsible for, what it can access, and how it should operate. Every agent entering the workspace is assigned a role — either the default role or a named specialist role. Required fields define the universal skeleton. Additional fields are permitted for domain-specific role governance (forbidden actions as prose, validation responsibilities, write modes, report formats).",
   "type": "object",
   "required": ["version", "role", "scope"],
-  "additionalProperties": false,
   "properties": {
     "$schema": {
       "type": "string",
@@ -20,18 +19,17 @@
       "type": "object",
       "description": "Identity and purpose of this role.",
       "required": ["name", "purpose"],
-      "additionalProperties": false,
       "properties": {
         "name": {
           "type": "string",
-          "pattern": "^[a-z][a-z0-9_]*$",
+          "pattern": "^[a-z][a-z0-9_-]*$",
           "description": "Machine-readable role identifier.",
           "examples": ["default", "frontend", "backend", "testing", "docs"]
         },
         "purpose": {
           "type": "string",
-          "maxLength": 300,
-          "description": "What this role is responsible for. The one-sentence job description.",
+          "maxLength": 500,
+          "description": "What this role is responsible for. The job description.",
           "examples": [
             "Full-scope development across the entire codebase.",
             "Frontend development including UI components, pages, and client-side state.",
@@ -44,13 +42,13 @@
           "description": "Areas of expertise this role is expected to bring. Helps agents calibrate their depth of knowledge application.",
           "examples": [["react", "accessibility", "css", "responsive_design"]]
         }
-      }
+      },
+      "additionalProperties": true
     },
     "scope": {
       "type": "object",
       "description": "The operational boundaries for this role. Overrides global governance permissions with role-specific access.",
       "required": ["primary_paths"],
-      "additionalProperties": false,
       "properties": {
         "primary_paths": {
           "type": "array",
@@ -70,7 +68,8 @@
           "description": "Paths this role must never touch, even if global governance allows access.",
           "examples": [["services/api/**", "infrastructure/**"]]
         }
-      }
+      },
+      "additionalProperties": true
     },
     "autonomy_overrides": {
       "type": "object",
@@ -87,7 +86,6 @@
       "items": {
         "type": "object",
         "required": ["convention_id", "override"],
-        "additionalProperties": false,
         "properties": {
           "convention_id": {
             "type": "string",
@@ -104,15 +102,16 @@
                 "type": "string",
                 "enum": ["strict", "preferred", "suggestion"]
               }
-            }
+            },
+            "additionalProperties": true
           }
-        }
+        },
+        "additionalProperties": true
       }
     },
     "collaboration": {
       "type": "object",
       "description": "How this role interacts with other roles in a multi-agent workflow.",
-      "additionalProperties": false,
       "properties": {
         "depends_on": {
           "type": "array",
@@ -132,7 +131,6 @@
           "items": {
             "type": "object",
             "required": ["path", "protocol"],
-            "additionalProperties": false,
             "properties": {
               "path": {
                 "type": "string",
@@ -144,13 +142,13 @@
                 "enum": ["append_only", "read_only", "coordinate", "owns"],
                 "description": "append_only: May add but not modify existing content. read_only: May read but not modify. coordinate: Must check ledger for locks before modifying. owns: This role has primary write authority."
               }
-            }
+            },
+            "additionalProperties": true
           }
         },
         "handoff": {
           "type": "object",
           "description": "How this role signals completion and passes work to dependent roles.",
-          "additionalProperties": false,
           "properties": {
             "signal_method": {
               "type": "string",
@@ -164,9 +162,12 @@
               "description": "What this role is expected to produce upon task completion.",
               "examples": [["updated source files", "passing tests", "changelog entry"]]
             }
-          }
+          },
+          "additionalProperties": true
         }
-      }
+      },
+      "additionalProperties": true
     }
-  }
+  },
+  "additionalProperties": true
 }

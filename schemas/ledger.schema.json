@@ -5,7 +5,6 @@
   "description": "The shared operational state of the workspace. Unlike the other policy files which are set by the human through Aegis, the ledger is actively read and written by agents during work. It tracks what is happening, what has been done, what failed, and what is blocked. This prevents agents from re-exploring dead ends or duplicating work.",
   "type": "object",
   "required": ["version", "sequence", "tasks"],
-  "additionalProperties": false,
   "properties": {
     "$schema": {
       "type": "string",
@@ -28,19 +27,18 @@
     },
     "write_protocol": {
       "type": "object",
-      "description": "The concurrency protocol governing how agents read and write the ledger. Because multiple agents may operate in parallel, all ledger writes must follow this protocol to prevent data loss or corruption. The protocol uses a lock file and sequence checking to ensure only one agent writes at a time.",
-      "additionalProperties": false,
+      "description": "The concurrency protocol governing how agents read and write the ledger. Because multiple agents may operate in parallel, all ledger writes must follow this protocol to prevent data loss or corruption.",
       "properties": {
         "lock_file": {
           "type": "string",
           "default": ".agentpolicy/state/ledger.lock",
-          "description": "Path to the lock file relative to project root. Before writing, an agent creates this file. If it already exists and is not stale, the agent must wait and retry. The lock file contains the role name of the holder and the acquisition timestamp."
+          "description": "Path to the lock file relative to project root. Before writing, an agent creates this file. If it already exists and is not stale, the agent must wait and retry."
         },
         "lock_timeout_seconds": {
           "type": "integer",
           "minimum": 10,
           "default": 120,
-          "description": "If a lock file is older than this many seconds, it is considered stale and may be broken by another agent. Prevents dead locks from permanently blocking ledger writes."
+          "description": "If a lock file is older than this many seconds, it is considered stale and may be broken by another agent."
         },
         "retry_interval_ms": {
           "type": "integer",
@@ -56,11 +54,10 @@
         },
         "procedure": {
           "type": "array",
-          "description": "The ordered steps every agent must follow when writing to the ledger. This is the canonical write protocol.",
+          "description": "The ordered steps every agent must follow when writing to the ledger.",
           "items": {
             "type": "object",
             "required": ["step", "action"],
-            "additionalProperties": false,
             "properties": {
               "step": {
                 "type": "integer",
@@ -70,10 +67,12 @@
                 "type": "string",
                 "description": "What the agent must do at this step."
               }
-            }
+            },
+            "additionalProperties": true
           }
         }
-      }
+      },
+      "additionalProperties": true
     },
     "tasks": {
       "type": "array",
@@ -81,7 +80,6 @@
       "items": {
         "type": "object",
         "required": ["id", "status", "summary", "assigned_role", "created_at"],
-        "additionalProperties": false,
         "properties": {
           "id": {
             "type": "string",
@@ -116,7 +114,7 @@
           "files_touched": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "Files modified during this task. Helps other agents understand what has changed."
+            "description": "Files modified during this task."
           },
           "depends_on": {
             "type": "array",
@@ -126,12 +124,11 @@
           "blocked_reason": {
             "type": "string",
             "maxLength": 300,
-            "description": "If status is 'blocked', explain why. This helps the human or Aegis resolve the blocker."
+            "description": "If status is 'blocked', explain why."
           },
           "failure_log": {
             "type": "object",
-            "description": "If status is 'failed', record what was attempted and why it failed. This is critical — it prevents future agents from retrying the same approach.",
-            "additionalProperties": false,
+            "description": "If status is 'failed', record what was attempted and why it failed. This prevents future agents from retrying the same approach.",
             "properties": {
               "approach": {
                 "type": "string",
@@ -149,14 +146,14 @@
               },
               "retry_recommended": {
                 "type": "boolean",
-                "description": "Whether a different approach might succeed, or if this task should be escalated to the human."
+                "description": "Whether a different approach might succeed."
               }
-            }
+            },
+            "additionalProperties": true
           },
           "outcome": {
             "type": "object",
             "description": "If status is 'completed', record what was delivered.",
-            "additionalProperties": false,
             "properties": {
               "summary": {
                 "type": "string",
@@ -180,7 +177,8 @@
                 "type": "string",
                 "format": "date-time"
               }
-            }
+            },
+            "additionalProperties": true
           },
           "notes": {
             "type": "array",
@@ -188,7 +186,6 @@
             "items": {
               "type": "object",
               "required": ["timestamp", "author_role", "content"],
-              "additionalProperties": false,
               "properties": {
                 "timestamp": {
                   "type": "string",
@@ -203,19 +200,20 @@
                   "type": "string",
                   "maxLength": 500
                 }
-              }
+              },
+              "additionalProperties": true
             }
           }
-        }
+        },
+        "additionalProperties": true
       }
     },
     "locks": {
       "type": "array",
-      "description": "Active resource locks. When a role is modifying a shared resource, it registers a lock here. Other roles check before modifying the same resource.",
+      "description": "Active resource locks. When a role is modifying a shared resource, it registers a lock here.",
       "items": {
         "type": "object",
         "required": ["resource", "held_by", "acquired_at"],
-        "additionalProperties": false,
         "properties": {
           "resource": {
             "type": "string",
@@ -240,8 +238,10 @@
             "format": "date-time",
             "description": "Optional expiration. Prevents stale locks from blocking work indefinitely."
           }
-        }
+        },
+        "additionalProperties": true
       }
     }
-  }
+  },
+  "additionalProperties": true
 }
