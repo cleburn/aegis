@@ -35,8 +35,7 @@ Aegis defines `.agentpolicy/` — a directory of schema-validated JSON that any 
 │   ├── ledger.json         # Living task state: in progress, done, failed, blocked
 │   └── overrides.jsonl     # Append-only log of policy overrides and construction sessions
 └── sessions/
-    ├── 2025-03-10_09-15-22.json   # Discovery session transcript
-    └── 2025-03-12_14-30-00.json   # Return visit transcript
+    └── *.json              # Timestamped discovery session transcripts (append-only)
 ```
 
 ### Constitution
