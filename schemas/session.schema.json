@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aegis.dev/schema/session.schema.json",
+  "title": "Aegis Session Transcript",
+  "description": "A complete transcript of an Aegis discovery session. Session files are stored in .agentpolicy/sessions/ with timestamped filenames (e.g. 2026-03-24_05-38-51.json). They are append-only — prior sessions are never modified. On return visits, Aegis reads all prior transcripts to understand the full history of governance decisions. Session transcripts serve as both the institutional memory of governance reasoning and an auditable record of how and why policy decisions were made.",
+  "type": "object",
+  "required": ["timestamp", "messages"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the session occurred."
+    },
+    "messages": {
+      "type": "array",
+      "description": "The complete conversation between the human and Aegis, in chronological order. The final entry may be a 'system' role message containing session closing metadata (files created, handoff prompt, deployment intent).",
+      "items": {
+        "type": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": ["user", "assistant", "system"],
+            "description": "Who produced this message. 'user' is the human, 'assistant' is Aegis, 'system' is session metadata (e.g. closing guidance)."
+          },
+          "content": {
+            "type": "string",
+            "description": "The message content. For 'system' role messages, this is a JSON string containing structured session metadata."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

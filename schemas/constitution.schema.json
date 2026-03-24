@@ -70,7 +70,7 @@
         },
         "required_artifacts": {
           "type": "array",
-          "description": "Files that must exist in the repository. Agents should create these if they are missing. These are project-level deliverables — documentation, licensing, contribution guides — that define the project's public identity and operational standards.",
+          "description": "Files that must exist in the repository. Agents should create these if they are missing. These are project-level deliverables — documentation, licensing, contribution guides — that define the project's public identity and operational standards. When the project defines build_commands and quality gates with enforcement enabled, a CI workflow configuration (e.g. .github/workflows/ci.yml) is recommended as a required artifact to ensure quality gates run automatically on every push.",
           "items": {
             "type": "object",
             "required": ["path", "purpose"],
@@ -78,7 +78,7 @@
               "path": {
                 "type": "string",
                 "description": "Relative path from project root.",
-                "examples": ["README.md", "LICENSE", "CONTRIBUTING.md"]
+                "examples": ["README.md", "LICENSE", "CONTRIBUTING.md", ".github/workflows/ci.yml"]
               },
               "purpose": {
                 "type": "string",
@@ -89,7 +89,7 @@
                 "type": "string",
                 "maxLength": 200,
                 "description": "Where the content should be derived from, if applicable.",
-                "examples": ["Derived from charter.md and constitution.json", "Standard MIT license text"]
+                "examples": ["Derived from charter.md and constitution.json", "Standard MIT license text", "Runs build_commands from constitution against quality_gate flags from governance"]
               }
             }
           }

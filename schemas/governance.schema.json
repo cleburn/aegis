@@ -119,15 +119,15 @@
         },
         "sensitive_patterns": {
           "type": "array",
-          "description": "Patterns that agents should never generate, log, or expose in outputs.",
+          "description": "Regex patterns for content scanning — matched against the text content of files to detect secrets, credentials, API keys, real data, or other sensitive strings agents should never generate or include in code. This field is for CONTENT scanning only. Do not use it for path-based approval routing — use role scoping (scope.excluded_paths) and escalation triggers for that.",
           "items": {
             "type": "object",
             "required": ["pattern", "reason"],
             "properties": {
               "pattern": {
                 "type": "string",
-                "description": "Regex or glob pattern matching sensitive content.",
-                "examples": ["API_KEY_.*", ".*_SECRET", "password"]
+                "description": "Regex pattern matched against file content. Must be a valid regular expression, not a file path or glob. Examples of correct patterns: credential detectors, secret formats, real data markers. Examples of incorrect patterns: 'audit/**', 'infra/**', '.env*' (these are paths, not content — use permissions.boundaries or escalation triggers instead).",
+                "examples": ["(AKID|AKIA)[A-Z0-9]{16}", "-----BEGIN.*PRIVATE KEY-----", "password\\s*=\\s*['\"]", "API_KEY_.*"]
               },
               "reason": {
                 "type": "string",

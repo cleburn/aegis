@@ -31,8 +31,12 @@ Aegis defines `.agentpolicy/` — a directory of schema-validated JSON that any 
 │   ├── frontend.json       # Scoped: owns UI, components, client-side state
 │   ├── backend.json        # Scoped: owns API, business logic, database
 │   └── testing.json        # Scoped: owns test suites, quality validation
-└── state/
-    └── ledger.json         # Living task state: in progress, done, failed, blocked
+├── state/
+│   ├── ledger.json         # Living task state: in progress, done, failed, blocked
+│   └── overrides.jsonl     # Append-only log of policy overrides and construction sessions
+└── sessions/
+    ├── 2025-03-10_09-15-22.json   # Discovery session transcript
+    └── 2025-03-12_14-30-00.json   # Return visit transcript
 ```
 
 ### Constitution
@@ -45,13 +49,50 @@ The employee handbook. Autonomy levels per domain (can the agent add dependencie
 
 Autonomy domains are not limited to a fixed list — the schema accepts any domain string. A healthcare project might define `patient_data_access` and `pii_handling`. A fintech project might define `financial_transactions` and `regulatory_reporting`. The project's needs dictate the domains, not a predetermined list.
 
+The governance also defines an override protocol — what happens when a human instructs an agent to violate a policy. Overrides are logged to an append-only file (`state/overrides.jsonl`) with timestamps, the policy violated, the human's rationale, and whether confirmation was given. Certain policies can be designated as immutable, meaning they cannot be overridden even with human confirmation — the governance must be formally revised through the discovery process.
+
 ### Roles
 
 Individual job descriptions. Each role defines a scope (what paths it owns), autonomy overrides, convention overrides, and collaboration protocols — who it depends on, who depends on it, how it signals completion, and how it coordinates access to shared resources. Single-agent workflows need only a `default.json`. Multi-agent workflows define specialist roles with clear boundaries.
 
+### Construction Role
+
+A standard role recognized by all Aegis-compatible tooling for initial builds and major restructuring. The construction role is not defined as a file in `roles/` — it is a synthetic role that runtime tooling (such as the Aegis MCP server) provides automatically alongside the project-defined roles.
+
+When an agent selects the construction role:
+- It has full repository access (all paths writable, all paths readable)
+- It uses the `.agentpolicy/` files as a blueprint — reading constitution, governance, and role files to understand the project's architecture, conventions, and quality standards
+- It runs file operations through native tools rather than governed tools, for speed
+- The runtime layer logs the construction session start and end to `state/overrides.jsonl` with timestamps and a summary of work completed
+- When the build is complete, the agent calls the task completion tool to run quality gates and close construction mode
+
+After construction, all future sessions select specialist roles with governed enforcement active.
+
 ### Ledger
 
 The shared whiteboard — and the only file agents write to, not just read. Every task is recorded with timestamps, change logs, and failure records that prevent the next agent from retrying the same broken approach. A built-in write protocol with sequence checking and lock files ensures agents never corrupt each other's entries, even in parallel.
+
+### Override Log
+
+The `state/overrides.jsonl` file is an append-only audit trail of every policy override, construction session, and enforcement action. Each line is a self-contained JSON entry with a timestamp, the policy violated (or construction mode event), whether the human confirmed the action, the agent role, and the rationale. This file must never be modified or truncated — append only.
+
+### Session Transcripts
+
+The `sessions/` directory contains complete transcripts of every Aegis discovery session — the conversation between the human and Aegis, plus the closing guidance (files created, handoff prompt, deployment intent). Each session is a timestamped JSON file. Sessions are append-only: new sessions create new files, prior sessions are never modified.
+
+On return visits, Aegis reads all prior session transcripts to understand the full history of governance decisions — why a particular autonomy level was chosen, what the human's compliance concerns were, how roles were structured and why. This replaces lossy memory systems with the actual conversation record.
+
+Session transcripts also serve as audit evidence. In regulated environments, an assessor can trace any governance decision back to the conversation where it was discussed, who made the decision, and what rationale was given.
+
+### Session Metadata
+
+When an Aegis-compatible tool runs a discovery session and extracts policy files, it also produces two metadata fields that are not written to `.agentpolicy/` but are standard extraction outputs:
+
+- **`deployment_intent`**: One of `"build_multi"`, `"build_single"`, or `"govern"`. Indicates whether the project needs to be built from scratch (by one or multiple agents) or whether governance is being added to an existing codebase. Tools use this to display appropriate next-step guidance.
+
+- **`handoff_prompt`**: A custom prompt crafted from the conversation context, ready for the user to paste into their next agent session. The handoff prompt instructs the agent to connect to the runtime enforcement layer, select the appropriate role, and begin work with the right strategic context. For builds, it includes recommended sequencing. For return visits with changes, it describes the specific delta to apply.
+
+These fields are included in the session transcript's closing guidance for auditability and so the user can reference them later.
 
 ## The Autonomy Framework
 
@@ -75,14 +116,18 @@ The JSON schemas define the `.agentpolicy/` format:
 | [`governance.schema.json`](schemas/governance.schema.json) | Autonomy, permissions, conventions, quality gates, escalation |
 | [`role.schema.json`](schemas/role.schema.json) | Scoped role definitions with collaboration protocols |
 | [`ledger.schema.json`](schemas/ledger.schema.json) | Shared operational state and task tracking |
+| [`session.schema.json`](schemas/session.schema.json) | Discovery session transcripts |
 
 All policy files include a `$schema` reference and a `version` field. Tools can validate policy files against these schemas to ensure structural correctness.
 
 ## Example
 
-The [`examples/`](./examples) directory contains a complete `.agentpolicy/` directory for a fictional project (Relay CRM) demonstrating all four file types with realistic content.
+The [`examples/`](./examples) directory contains a complete `.agentpolicy/` directory for a fictional project (Relay CRM) demonstrating all file types with realistic content, including role definitions, a populated ledger, and override log entries.
 
-For a real-world stress test, see [ClearHealth](https://github.com/cleburn/clearhealth) — a HIPAA-compliant healthcare platform built entirely by a 5-agent AI swarm governed by Aegis. 65+ files deployed in 27 minutes, zero governance violations, PII scan passed on GitHub Actions.
+For real-world stress tests, see:
+- [ClearHealth](https://github.com/cleburn/clearhealth) — A HIPAA-compliant healthcare platform built by a 5-agent AI swarm. 65+ files deployed in 27 minutes, zero governance violations.
+- [ClearFinTech](https://github.com/cleburn/clearfintech) — A PCI-DSS/SOX-governed financial platform built by a single governed agent in 11 minutes. 100+ tests passing, CI green.
+- [ClearDefense](https://github.com/cleburn/cleardefense) — A CMMC/ITAR-governed defense logistics platform. 412 tests, full compliance infrastructure, construction mode validated end-to-end.
 
 ## Agent-Agnostic
 
@@ -98,9 +143,15 @@ To adopt Aegis governance in your project, tool, or framework:
 
 You can generate the files by hand, with the [Aegis CLI](https://github.com/cleburn/aegis-cli), or with any tool that produces valid JSON against the schemas. The governance layer is the standard — the tooling is interchangeable.
 
+## Runtime Enforcement
+
+The [Aegis MCP Server](https://github.com/cleburn/aegis-mcp-server) (`aegis-mcp-server` on npm) provides runtime enforcement of Aegis governance. It connects to AI agents via the Model Context Protocol and validates every write, delete, and execute operation against the loaded policy — zero token overhead, full audit trail. The `.mcp.json` connection file is generated alongside `.agentpolicy/` for automatic connection.
+
+The MCP server is one runtime layer — not the only one. Any tool can enforce Aegis governance by reading the `.agentpolicy/` files and validating agent actions against the schemas.
+
 ## Reference Implementation
 
-The [Aegis CLI](https://github.com/cleburn/aegis-cli) (`aegis-cli` on npm) is the reference implementation. It scans your codebase, conducts a discovery conversation, and generates a complete `.agentpolicy/` directory. It's one way to produce the files — not the only way.
+The [Aegis CLI](https://github.com/cleburn/aegis-cli) (`aegis-cli` on npm) is the reference implementation for generating `.agentpolicy/` files. It scans your codebase, conducts a discovery conversation, and produces a complete governance directory with session transcripts. It's one way to produce the files — not the only way.
 
 ## Philosophy
 
@@ -118,7 +169,7 @@ Aegis is the bridge between your vision and the agents who bring it to life.
 
 **Scoped over global.** Different agents (or the same agent in different contexts) can have different permissions, conventions, and autonomy levels. A frontend agent doesn't need write access to database migrations.
 
-**Auditable over invisible.** The ledger creates a traceable record of what agents did and why. Governance without audit is just hope.
+**Auditable over invisible.** The ledger, override log, and session transcripts create a traceable record of what agents did, what decisions were made, and why. Governance without audit is just hope.
 
 ## Contributing
 
