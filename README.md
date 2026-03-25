@@ -1,10 +1,6 @@
 # Aegis — Governance Specification for AI Agents
 
 <p align="center">
-  <strong><code>.editorconfig</code> for AI agents — but with the depth of an actual governance framework.</strong>
-</p>
-
-<p align="center">
   A structured operating contract for every AI agent that touches your codebase: what it can touch, what's off-limits, what conventions to follow, how much autonomy it has, and who else is on the team. Schema-validated, machine-parseable, agent-agnostic.
 </p>
 
@@ -144,7 +140,7 @@ You can generate the files by hand, with the [Aegis CLI](https://github.com/cleb
 
 ## Runtime Enforcement
 
-The [Aegis MCP Server](https://github.com/cleburn/aegis-mcp-server) (`aegis-mcp-server` on npm) provides runtime enforcement of Aegis governance. It connects to AI agents via the Model Context Protocol and validates every write, delete, and execute operation against the loaded policy — zero token overhead, full audit trail. The `.mcp.json` connection file is generated alongside `.agentpolicy/` for automatic connection.
+The [Aegis MCP](https://github.com/cleburn/aegis-mcp) (`aegis-mcp-server` on npm) provides runtime enforcement of Aegis governance. It connects to AI agents via the Model Context Protocol and validates every write, delete, and execute operation against the loaded policy — zero token overhead, full audit trail. The `.mcp.json` connection file is generated alongside `.agentpolicy/` for automatic connection.
 
 The MCP server is one runtime layer — not the only one. Any tool can enforce Aegis governance by reading the `.agentpolicy/` files and validating agent actions against the schemas.
 
