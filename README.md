@@ -1,6 +1,11 @@
 # Aegis — Governance Specification for AI Agents
 
 <p align="center">
+  <img src="https://img.shields.io/badge/license-Apache%202.0-blue?style=flat" alt="License: Apache 2.0" />
+  <img src="https://img.shields.io/badge/spec-v0.2.0-green?style=flat" alt="Spec Version: v0.2.0" />
+</p>
+
+<p align="center">
   A structured operating contract for every AI agent that touches your codebase: what it can touch, what's off-limits, what conventions to follow, how much autonomy it has, and who else is on the team. Schema-validated, machine-parseable, agent-agnostic.
 </p>
 
