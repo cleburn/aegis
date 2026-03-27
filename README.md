@@ -166,6 +166,8 @@ Aegis is the bridge between your vision and the agents who bring it to life.
 
 **Auditable over invisible.** The ledger, override log, and session transcripts create a traceable record of what agents did, what decisions were made, and why. Governance without audit is just hope.
 
+**Independently verified over self-validated.** AI agents that generate compliance code and then generate tests to validate that code create a circular trust problem. The same model produces both layers, so the same blind spots exist in both. For projects operating under compliance frameworks (HIPAA, PCI-DSS, CMMC, SOX, FedRAMP, ITAR), Aegis recommends integrating a third-party infrastructure scanner (Checkov, tfsec, Trivy, Snyk IaC) into the CI pipeline as a quality gate. These tools validate against an independent compliance baseline maintained by security researchers, not by the same model that wrote the code. Self-generated tests prove internal consistency. Third-party scanners prove external compliance. Both are necessary; neither is sufficient alone.
+
 ## Contributing
 
 Contributions to the spec are welcome. Please open an issue for discussion before submitting schema changes — the spec is versioned and changes affect every tool that implements it.
