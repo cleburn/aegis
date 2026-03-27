@@ -79,6 +79,10 @@ On return visits, Aegis reads all prior session transcripts to understand the fu
 
 Session transcripts also serve as audit evidence. In regulated environments, an assessor can trace any governance decision back to the conversation where it was discussed, who made the decision, and what rationale was given.
 
+### Third-Party Validation
+
+For projects operating under compliance frameworks (HIPAA, PCI-DSS, CMMC, SOX, FedRAMP, ITAR), the quality gate's `custom_checks` field should include at least one third-party infrastructure scanner that validates against an independent compliance baseline. Tools like Checkov, tfsec, Trivy, or Snyk IaC maintain rule sets built by security researchers — they catch misconfigurations that self-generated tests cannot, because the same model that wrote the infrastructure code also wrote the tests validating it. The `custom_checks` schema already supports this pattern with no changes needed. Aegis-compatible discovery tools should surface this recommendation when compliance frameworks are detected during conversation.
+
 ### Session Metadata
 
 When an Aegis-compatible tool runs a discovery session and extracts policy files, it also produces two metadata fields that are not written to `.agentpolicy/` but are standard extraction outputs:
