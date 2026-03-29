@@ -9,6 +9,10 @@
   A structured operating contract for every AI agent that touches your codebase: what it can touch, what's off-limits, what conventions to follow, how much autonomy it has, and who else is on the team. Schema-validated, machine-parseable, agent-agnostic.
 </p>
 
+<p align="center">
+  <img src="assets/Open-page.png" alt="Aegis Lifecycle Overview" width="800" />
+</p>
+
 ---
 
 ## The Problem
